@@ -32,12 +32,11 @@ module SPF
         ip4            |
         ip6            |
         exists         |
-        standalone_ip4 |
-        standalone_ip6
+        invalid
       end
 
-
       rule(:all) { str('all').as(:name) }
+      rule(:invalid) { (match['^\s'].repeat).as(:value) }
 
       #
       # Section 5.2:
@@ -89,11 +88,6 @@ module SPF
         str('ip4').as(:name) >> str(':') >> (ipv4_address >> ipv4_cidr_length.maybe).as(:value)
       end
 
-      # Rule for standalone IPv4 address
-      rule(:standalone_ip4) do
-        str('').as(:name) >> (ipv4_address >> ipv4_cidr_length.maybe).as(:value)
-      end
-
       #
       # Section 5.6:
       #
@@ -101,11 +95,6 @@ module SPF
       #
       rule(:ip6) do
         str('ip6').as(:name) >> str(':') >> (ipv6_address >> ipv6_cidr_length.maybe).as(:value)
-      end
-
-      # Rule for standalone IPv6 address
-      rule(:standalone_ip6) do
-        str('').as(:name) >> (ipv6_address >> ipv6_cidr_length.maybe).as(:value)
       end
 
       rule(:dual_cidr_length) do
@@ -265,7 +254,7 @@ module SPF
         end
 
         rule(directive: subtree(:options)) do
-          name      = options.delete(:name)&.to_sym
+          name      = options.delete(:name)&.to_sym || :invalid
           value     = options[:value]
           qualifier = if options[:qualifier]
                         Mechanism::QUALIFIERS.fetch(options[:qualifier].to_s)
