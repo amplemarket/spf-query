@@ -15,7 +15,6 @@ module SPF
     # @see https://tools.ietf.org/html/rfc7208#section-7.1
     #
     class Parser < Parslet::Parser
-
       root :record
       rule(:record)    { version >> sp.repeat(1) >> terms.as(:rules) >> sp.repeat(0) }
       rule(:version)   { str('v=') >> str('spf1').as(:version) }
@@ -25,15 +24,21 @@ module SPF
       rule(:qualifier) { match['+\-~?'].as(:qualifier) }
 
       rule(:mechanism) do
-        all     |
-        include |
-        a       |
-        mx      |
-        ptr     |
-        ip4     |
-        ip6     |
-        exists
+        all |
+          include |
+          a       |
+          mx      |
+          ptr     |
+          ip4     |
+          ip6     |
+          exists  |
+          catchall
+          # standalone_ip4 |
+          # standalone_ip6
       end
+
+      rule(:catchall) { (match['^\s'].repeat).as(:value) }
+
 
       rule(:all) { str('all').as(:name) }
 
@@ -86,6 +91,17 @@ module SPF
       rule(:ip4) do
         str('ip4').as(:name) >> str(':') >> (ipv4_address >> ipv4_cidr_length.maybe).as(:value)
       end
+
+      # Rule for standalone IPv4 address
+      rule(:standalone_ip4) do
+        str('ip4').as(:name) >> (ipv4_address >> ipv4_cidr_length.maybe).as(:value)
+      end
+
+      # Rule for standalone IPv6 address
+      rule(:standalone_ip6) do
+        str('').as(:name) >> (ipv6_address >> ipv6_cidr_length.maybe).as(:value)
+      end
+
 
       #
       # Section 5.6:
@@ -253,7 +269,7 @@ module SPF
         end
 
         rule(directive: subtree(:options)) do
-          name      = options.delete(:name).to_sym
+          name      = options.delete(:name)&.to_sym
           value     = options[:value]
           qualifier = if options[:qualifier]
                         Mechanism::QUALIFIERS.fetch(options[:qualifier].to_s)
