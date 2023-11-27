@@ -24,20 +24,17 @@ module SPF
       rule(:qualifier) { match['+\-~?'].as(:qualifier) }
 
       rule(:mechanism) do
-        all |
-          include |
-          a       |
-          mx      |
-          ptr     |
-          ip4     |
-          ip6     |
-          exists  |
-          catchall
-          # standalone_ip4 |
-          # standalone_ip6
+        all            |
+        include        |
+        a              |
+        mx             |
+        ptr            |
+        ip4            |
+        ip6            |
+        exists         |
+        standalone_ip4 |
+        standalone_ip6
       end
-
-      rule(:catchall) { (match['^\s'].repeat).as(:value) }
 
 
       rule(:all) { str('all').as(:name) }
@@ -94,14 +91,8 @@ module SPF
 
       # Rule for standalone IPv4 address
       rule(:standalone_ip4) do
-        str('ip4').as(:name) >> (ipv4_address >> ipv4_cidr_length.maybe).as(:value)
+        str('').as(:name) >> (ipv4_address >> ipv4_cidr_length.maybe).as(:value)
       end
-
-      # Rule for standalone IPv6 address
-      rule(:standalone_ip6) do
-        str('').as(:name) >> (ipv6_address >> ipv6_cidr_length.maybe).as(:value)
-      end
-
 
       #
       # Section 5.6:
@@ -110,6 +101,11 @@ module SPF
       #
       rule(:ip6) do
         str('ip6').as(:name) >> str(':') >> (ipv6_address >> ipv6_cidr_length.maybe).as(:value)
+      end
+
+      # Rule for standalone IPv6 address
+      rule(:standalone_ip6) do
+        str('').as(:name) >> (ipv6_address >> ipv6_cidr_length.maybe).as(:value)
       end
 
       rule(:dual_cidr_length) do
