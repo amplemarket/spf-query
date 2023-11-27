@@ -24,14 +24,14 @@ module SPF
       rule(:qualifier) { match['+\-~?'].as(:qualifier) }
 
       rule(:mechanism) do
-        all            |
-        include        |
-        a              |
-        mx             |
-        ptr            |
-        ip4            |
-        ip6            |
-        exists         |
+        all     |
+        include |
+        a       |
+        mx      |
+        ptr     |
+        ip4     |
+        ip6     |
+        exists  |
         invalid
       end
 
