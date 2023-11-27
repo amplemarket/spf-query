@@ -15,7 +15,6 @@ module SPF
     # @see https://tools.ietf.org/html/rfc7208#section-7.1
     #
     class Parser < Parslet::Parser
-
       root :record
       rule(:record)    { version >> sp.repeat(1) >> terms.as(:rules) >> sp.repeat(0) }
       rule(:version)   { str('v=') >> str('spf1').as(:version) }
@@ -32,10 +31,12 @@ module SPF
         ptr     |
         ip4     |
         ip6     |
-        exists
+        exists  |
+        invalid
       end
 
       rule(:all) { str('all').as(:name) }
+      rule(:invalid) { (match['^\s'].repeat).as(:value) }
 
       #
       # Section 5.2:
@@ -253,7 +254,7 @@ module SPF
         end
 
         rule(directive: subtree(:options)) do
-          name      = options.delete(:name).to_sym
+          name      = options.delete(:name)&.to_sym || :invalid
           value     = options[:value]
           qualifier = if options[:qualifier]
                         Mechanism::QUALIFIERS.fetch(options[:qualifier].to_s)
