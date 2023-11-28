@@ -678,7 +678,7 @@ describe Parser do
   context "When spf record is invalid" do
     describe ".parse" do
       let(:spf) do
-        %{v=spf1 include:spf.protection.outlook.com IP4:156.70.47.89/32 IP5:156.70.47.89/32 185.4.178.10/32 2001:0000:130F:0000:0000:09C0:876A:130B ~all}
+        %{v=spf1 include:spf.protection.outlook.com ip4:156.70.47.89/32 IP5:156.70.47.89/32 185.4.178.10/32 2001:0000:130F:0000:0000:09C0:876A:130B redirect=mail.air-hh.de ~all}
       end
 
       subject { described_class.parse(spf) }

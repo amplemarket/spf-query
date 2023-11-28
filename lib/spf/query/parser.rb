@@ -36,7 +36,7 @@ module SPF
       end
 
       rule(:all) { str('all').as(:name) }
-      rule(:invalid) { (match['^\s'].repeat).as(:value) }
+      rule(:invalid) { (match['a-zA-Z'].repeat(1) >> str('=')).absent? >> match['^\s'].repeat(1).as(:value) }
 
       #
       # Section 5.2:
